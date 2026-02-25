@@ -1,0 +1,32 @@
+# Git Ignore File for CareBox Project
+
+# Development files
+.qoder/
+fix_admin_password.sql
+add_verified_admin.sql
+
+# Database exports (keep only the main SQL file)
+*.sql
+!database/carebox_db.sql
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

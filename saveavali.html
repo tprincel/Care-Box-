@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save Aravalli - Conservation Campaign</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f9ff;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header styles */
+        .header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .campaign-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .campaign-title span {
+            color: #27ae60;
+        }
+
+        .campaign-url {
+            color: #3498db;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .back-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Stats section */
+        .stats-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+        }
+
+        .stat-value {
+            font-size: 48px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            margin-top: 10px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #2ecc71;
+            border-radius: 10px;
+            width: 42%;
+        }
+
+        /* Campaign goal */
+        .campaign-goal {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .goal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .goal-amount {
+            font-size: 36px;
+            font-weight: 800;
+            color: #e74c3c;
+        }
+
+        /* Money table */
+        .money-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .money-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .money-table th {
+            background-color: #3498db;
+            color: white;
+            text-align: left;
+            padding: 15px;
+            font-weight: 600;
+        }
+
+        .money-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .money-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Products section */
+        .products-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-card.selected {
+            border-color: #3498db;
+            background-color: #f0f8ff;
+        }
+
+        .product-image {
+            height: 160px;
+            width: 100%;
+            object-fit: cover;
+            background-color: #f8f9fa;
+        }
+
+        .product-details {
+            padding: 15px;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .product-progress {
+            margin-bottom: 10px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2ecc71;
+            margin-bottom: 15px;
+        }
+
+        .add-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .add-button:hover {
+            background-color: #2980b9;
+        }
+
+        .add-button.added {
+            background-color: #2ecc71;
+        }
+
+        /* Cart summary */
+        .cart-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .cart-summary.visible {
+            display: block;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .cart-items {
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 0;
+            font-weight: 700;
+            font-size: 22px;
+            color: #2c3e50;
+            border-top: 2px solid #eee;
+            margin-top: 10px;
+        }
+
+        .donate-now-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .donate-now-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .donate-now-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .remove-item {
+            color: #e74c3c;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        /* Project description */
+        .project-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .project-description {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        /* Recent donations */
+        .donations-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .donation-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .donation-item:last-child {
+            border-bottom: none;
+        }
+
+        .donor-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .donation-amount {
+            font-weight: 700;
+            color: #2ecc71;
+        }
+
+        .donation-time {
+            color: #95a5a6;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .stat-box {
+                min-width: 150px;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .back-button {
+                align-self: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1 class="campaign-title">Save Aravalli - <span>Conservation Campaign</span></h1>
+                <p class="campaign-url">carebox/savearavalli</p>
+            </div>
+            <button class="back-button" id="backToDashboard">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </button>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-section">
+            <div class="stat-box">
+                <div class="stat-value">42%</div>
+                <div class="stat-label">Campaign Progress</div>
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">892</div>
+                <div class="stat-label">Conservation Champions</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">₹22,45,780</div>
+                <div class="stat-label">Conservation Funds Raised</div>
+            </div>
+        </div>
+
+        <!-- Campaign Goal -->
+        <div class="campaign-goal">
+            <div class="goal-title">Total Conservation Goal</div>
+            <div class="goal-amount">₹50,00,000</div>
+        </div>
+
+        <!-- Where Your Money Goes -->
+        <div class="money-section">
+            <h2 class="section-title">Where Your Contribution Goes?</h2>
+            <table class="money-table">
+                <thead>
+                    <tr>
+                        <th>Conservation Kit</th>
+                        <th>Required Quantity</th>
+                        <th>Price/Unit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Tree Sapling Kit</td>
+                        <td>10,000</td>
+                        <td>₹400</td>
+                    </tr>
+                    <tr>
+                        <td>Forest Guard Kit</td>
+                        <td>500</td>
+                        <td>₹1,800</td>
+                    </tr>
+                    <tr>
+                        <td>Soil Conservation Kit</td>
+                        <td>1,000</td>
+                        <td>₹1,000</td>
+                    </tr>
+                    <tr>
+                        <td>Wildlife Monitoring Kit</td>
+                        <td>200</td>
+                        <td>₹4,000</td>
+                    </tr>
+                    <tr>
+                        <td>Community Awareness Kit</td>
+                        <td>800</td>
+                        <td>₹750</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Products -->
+        <div class="products-section">
+            <h2 class="section-title">Conservation Kits</h2>
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="cart-summary" id="cartSummary">
+            <div class="cart-header">
+                <h3 class="section-title" style="margin-bottom: 0;">Your Selected Conservation Kits</h3>
+                <button class="remove-item" id="clearCart">Clear All</button>
+            </div>
+            <div class="cart-items" id="cartItems">
+                <!-- Cart items will be dynamically added here -->
+            </div>
+            <div class="cart-total">
+                <span>Total Conservation Contribution:</span>
+                <span id="cartTotal">₹0</span>
+            </div>
+            <button class="donate-now-btn" id="donateNowButton" disabled>
+                <i class="fas fa-heart"></i> Contribute to Conservation
+            </button>
+        </div>
+
+        <!-- Project Description -->
+        <div class="project-section">
+            <h2 class="section-title">The Aravalli Conservation Project</h2>
+            <p class="project-description">
+                The Aravalli Range, India's oldest mountain range, is facing severe degradation due to mining,
+                deforestation, and urban expansion. This ancient ecosystem is home to unique biodiversity, acts as a
+                crucial water reservoir, and prevents desertification in North India. Our campaign focuses on restoring
+                degraded areas, planting native species, empowering local communities as conservation stewards, and
+                creating sustainable livelihoods through agroforestry. Every contribution helps us protect this vital
+                ecological barrier that affects the climate and water security of over 50 million people.
+            </p>
+        </div>
+
+        <!-- Recent Donations -->
+        <div class="donations-section">
+            <h2 class="section-title">Recent Conservation Champions</h2>
+            <div id="recentDonationsList">
+                <div class="donation-item">
+                    <div>
+                        <div class="donor-name">Green Earth Foundation</div>
+                        <div class="donation-time">2 hours ago</div>
+                    </div>
+                    <div class="donation-amount">₹25,000</div>
+                </div>
+                <div class="donation-item">
+                    <div>
+                        <div class="donor-name">Rajesh Mehta</div>
+                        <div class="donation-time">5 hours ago</div>
+                    </div>
+                    <div class="donation-amount">₹5,000</div>
+                </div>
+                <div class="donation-item">
+                    <div>
+                        <div class="donor-name">Ananya Sharma</div>
+                        <div class="donation-time">1 day ago</div>
+                    </div>
+                    <div class="donation-amount">₹2,500</div>
+                </div>
+                <div class="donation-item">
+                    <div>
+                        <div class="donor-name">Anonymous</div>
+                        <div class="donation-time">2 days ago</div>
+                    </div>
+                    <div class="donation-amount">₹10,000</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2023 CareBox | Save Aravalli Conservation Campaign | All contributions are tax exempted under 80G</p>
+        </div>
+    </div>
+
+    <script>
+        // Aravalli Conservation Product data with your images
+        const products = [
+            {
+                id: 1,
+                name: "Tree Sapling Kit",
+                description: "Native tree sapling, compost, planting guide for biodiversity restoration",
+                price: 400,
+                image: "https://gardenerspath.com/wp-content/uploads/2015/01/How-to-Read-Seed-Packages.jpg",
+                obtained: 6700,
+                required: 10000
+            },
+            {
+                id: 2,
+                name: "Forest Guard Kit",
+                description: "Equips local forest protectors with binoculars, first aid, and monitoring tools",
+                price: 1800,
+                image: "https://camprentique.ca/cdn/shop/files/Backpacking-Complete-Package-one.png?v=1717066535",
+                obtained: 320,
+                required: 500
+            },
+            {
+                id: 3,
+                name: "Soil Conservation Kit",
+                description: "Erosion control materials, native grass seeds, slope stabilization tools",
+                price: 1000,
+                image: "https://m.media-amazon.com/images/I/61o7thUsL2L._AC_UF350,350_QL80_.jpg",
+                obtained: 750,
+                required: 1000
+            },
+            {
+                id: 4,
+                name: "Wildlife Monitoring Kit",
+                description: "Camera traps, field equipment for tracking leopard, hyena, and bird populations",
+                price: 4000,
+                image: "https://cdn.shopify.com/s/files/1/1053/0662/files/Camping_Gear_02_38c1db8f-7e7d-4b5b-bd50-451acdb6ab1b_grande.jpg?v=1595617601",
+                obtained: 150,
+                required: 200
+            },
+            {
+                id: 5,
+                name: "Community Awareness Kit",
+                description: "Educational materials for villagers on sustainable living and conservation",
+                price: 750,
+                image: "https://im.indiatimes.in/content/2022/Sep/20220913_105125_63204a529de8d.jpg",
+                obtained: 650,
+                required: 800
+            }
+        ];
+
+        // Cart to store selected products
+        let cart = [];
+
+        // DOM elements
+        const productsGrid = document.getElementById('productsGrid');
+        const cartSummary = document.getElementById('cartSummary');
+        const cartItems = document.getElementById('cartItems');
+        const cartTotal = document.getElementById('cartTotal');
+        const donateNowButton = document.getElementById('donateNowButton');
+        const clearCartButton = document.getElementById('clearCart');
+        const recentDonationsList = document.getElementById('recentDonationsList');
+        const backToDashboardButton = document.getElementById('backToDashboard');
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function () {
+            // Render products
+            renderProducts();
+
+            // Set up event listeners
+            setupEventListeners();
+        });
+
+        // Render products to the page
+        function renderProducts() {
+            productsGrid.innerHTML = '';
+
+            products.forEach(product => {
+                const progressPercent = (product.obtained / product.required) * 100;
+
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.dataset.id = product.id;
+
+                productCard.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                    <div class="product-details">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-progress">
+                            <div class="progress-info">
+                                <span>${product.obtained.toLocaleString()} of ${product.required.toLocaleString()}</span>
+                                <span>${Math.round(progressPercent)}%</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: ${progressPercent}%"></div>
+                            </div>
+                        </div>
+                        <div class="product-price">₹${product.price.toLocaleString()}/unit</div>
+                        <button class="add-button" data-id="${product.id}">ADD +</button>
+                    </div>
+                `;
+
+                productsGrid.appendChild(productCard);
+            });
+
+            // Add event listeners to add buttons
+            document.querySelectorAll('.add-button').forEach(button => {
+                button.addEventListener('click', function () {
+                    const productId = parseInt(this.dataset.id);
+                    addToCart(productId);
+                });
+            });
+        }
+
+        // Add product to cart
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            // Check if product is already in cart
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1
+                });
+            }
+
+            // Update button text
+            const addButton = document.querySelector(`.add-button[data-id="${productId}"]`);
+            addButton.textContent = 'ADDED ✓';
+            addButton.classList.add('added');
+
+            // Update cart display
+            updateCartDisplay();
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                addButton.textContent = 'ADD +';
+                addButton.classList.remove('added');
+            }, 2000);
+        }
+
+        // Remove item from cart
+        function removeFromCart(productId) {
+            const itemIndex = cart.findIndex(item => item.id === productId);
+
+            if (itemIndex !== -1) {
+                if (cart[itemIndex].quantity > 1) {
+                    cart[itemIndex].quantity -= 1;
+                } else {
+                    cart.splice(itemIndex, 1);
+                }
+
+                updateCartDisplay();
+            }
+        }
+
+        // Clear entire cart
+        function clearCart() {
+            cart = [];
+            updateCartDisplay();
+        }
+
+        // Update cart display
+        function updateCartDisplay() {
+            if (cart.length === 0) {
+                cartSummary.classList.remove('visible');
+                donateNowButton.disabled = true;
+                return;
+            }
+
+            cartSummary.classList.add('visible');
+            donateNowButton.disabled = false;
+
+            // Calculate total
+            let total = 0;
+            let cartHTML = '';
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+
+                cartHTML += `
+                    <div class="cart-item">
+                        <div>
+                            <span>${item.name} x${item.quantity}</span>
+                            <button class="remove-item" data-id="${item.id}">Remove</button>
+                        </div>
+                        <span>₹${itemTotal.toLocaleString()}</span>
+                    </div>
+                `;
+            });
+
+            cartItems.innerHTML = cartHTML;
+            cartTotal.textContent = `₹${total.toLocaleString()}`;
+
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-item').forEach(button => {
+                button.addEventListener('click', function () {
+                    const productId = parseInt(this.dataset.id);
+                    removeFromCart(productId);
+                });
+            });
+        }
+
+        // Handle donation
+        function handleDonation() {
+            let total = 0;
+            cart.forEach(item => {
+                total += item.price * item.quantity;
+            });
+
+            // Ask for donor name
+            const donorName = prompt("Thank you for supporting Aravalli conservation! Please enter your name (optional):");
+
+            // If user cancels, don't proceed
+            if (donorName === null) {
+                return;
+            }
+
+            const nameToUse = donorName.trim() ? donorName : "Anonymous";
+
+            // Show success message
+            alert(`Thank you ${nameToUse} for your generous contribution of ₹${total.toLocaleString()}! Your support will help protect the Aravalli ecosystem for generations to come.`);
+
+            // Add to recent donations (local display)
+            addRecentDonation(nameToUse, total);
+
+            // Save to backend database
+            saveDonationToBackend(nameToUse, total);
+
+            // Reset cart
+            cart = [];
+            updateCartDisplay();
+
+            // Update stats
+            updateStats(total);
+        }
+
+        // Save donation to backend database
+        function saveDonationToBackend(donorName, amount) {
+            // Get product names from cart
+            const productNames = cart.map(item => item.name).join(', ');
+            
+            const formData = new FormData();
+            formData.append('donor_name', donorName);
+            formData.append('amount', amount);
+            formData.append('product_name', productNames || 'Environmental Kit');
+            formData.append('campaign_name', 'Save Aravalli');
+            
+            fetch('./backend/api/save_donation.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Donation saved to backend:', data);
+            })
+            .catch(error => {
+                console.error('Error saving donation to backend:', error);
+            });
+        }
+
+        // Add new donation to recent donations list
+        function addRecentDonation(donorName, amount) {
+            const newDonation = document.createElement('div');
+            newDonation.className = 'donation-item';
+            newDonation.innerHTML = `
+                <div>
+                    <div class="donor-name">${donorName}</div>
+                    <div class="donation-time">Just now</div>
+                </div>
+                <div class="donation-amount">₹${amount.toLocaleString()}</div>
+            `;
+
+            // Insert at the top of the list
+            recentDonationsList.insertBefore(newDonation, recentDonationsList.firstChild);
+        }
+
+        // Update campaign stats
+        function updateStats(donationAmount) {
+            // Update total raised
+            const raisedElement = document.querySelector('.stat-box:nth-child(3) .stat-value');
+            const currentRaisedText = raisedElement.textContent.replace(/[^0-9]/g, '');
+            const currentRaised = parseInt(currentRaisedText);
+            const newRaised = currentRaised + donationAmount;
+            raisedElement.textContent = `₹${newRaised.toLocaleString()}`;
+
+            // Update progress
+            const progressElement = document.querySelector('.progress-bar');
+            const progressValueElement = document.querySelector('.stat-box:first-child .stat-value');
+            const goal = 5000000;
+            const progressPercent = (newRaised / goal) * 100;
+
+            const roundedProgress = Math.round(progressPercent);
+            progressValueElement.textContent = `${roundedProgress}%`;
+            progressElement.style.width = `${progressPercent}%`;
+
+            // Update donor count
+            const donorElement = document.querySelector('.stat-box:nth-child(2) .stat-value');
+            const currentDonorsText = donorElement.textContent.replace(/[^0-9]/g, '');
+            const currentDonors = parseInt(currentDonorsText);
+            donorElement.textContent = (currentDonors + 1).toLocaleString();
+        }
+
+        // Go back to donor dashboard
+        function goToDashboard() {
+            // Change this to your actual donor dashboard file path
+            window.location.href = 'donerdashboard.html';
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Donate Now button
+            donateNowButton.addEventListener('click', handleDonation);
+
+            // Clear cart button
+            clearCartButton.addEventListener('click', clearCart);
+
+            // Back to dashboard button
+            backToDashboardButton.addEventListener('click', goToDashboard);
+
+            // Product card selection
+            document.addEventListener('click', function (e) {
+                const productCard = e.target.closest('.product-card');
+                if (productCard) {
+                    // Toggle selection
+                    productCard.classList.toggle('selected');
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

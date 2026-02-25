@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - CareBox</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+<style>
+body {
+font-family: 'Inter', sans-serif;
+background-color: #f8fafc;
+}
+#message-box {
+z-index: 1000;
+transition: opacity 0.3s ease-in-out;
+}
+</style>
+</head>
+<body>
+
+<!-- Message Box -->
+<div id="message-box" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center hidden opacity-0">
+<div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full">
+<h3 id="message-title" class="text-xl font-bold mb-3 text-red-600"></h3>
+<p id="message-body" class="text-gray-700 mb-4"></p>
+<button onclick="hideMessage()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">
+Okay
+</button>
+</div>
+</div>
+
+<!-- Admin Dashboard Container -->
+<div id="app" class="bg-gray-100 min-h-screen">
+<!-- Content will be rendered here -->
+</div>
+
+<script>
+// Get user data from localStorage
+const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || { name: 'Admin', email: '' };
+const MESSAGE_BOX = document.getElementById('message-box');
+const APP_CONTAINER = document.getElementById('app');
+
+// Utility Functions
+function showMessage(title, body, isError = true) {
+document.getElementById('message-title').textContent = title;
+document.getElementById('message-title').className = isError ? 'text-xl font-bold mb-3 text-red-600' : 'text-xl font-bold mb-3 text-green-600';
+document.getElementById('message-body').innerHTML = body;
+MESSAGE_BOX.classList.remove('hidden');
+setTimeout(() => MESSAGE_BOX.classList.remove('opacity-0'), 10);
+}
+
+function hideMessage() {
+MESSAGE_BOX.classList.add('opacity-0');
+setTimeout(() => MESSAGE_BOX.classList.add('hidden'), 300);
+}
+
+function logout() {
+localStorage.removeItem('loggedInUser');
+window.location.href = 'loginindex.html';
+}
+
+// Render Admin Dashboard
+function renderAdminDashboard() {
+APP_CONTAINER.innerHTML = `
+<div class="w-full max-w-6xl mx-auto px-4 py-12">
+<div class="flex justify-between items-center mb-4">
+<h1 class="text-4xl font-extrabold text-red-700">Admin Panel</h1>
+<button onclick="logout()" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">
+Logout
+</button>
+</div>
+
+<!-- Personalized Greeting -->
+<h2 class="text-2xl font-semibold text-gray-800 mb-8">
+Welcome back, <span class="text-red-700 font-bold">${loggedInUser.name}</span>!
+<span class="text-sm text-gray-500 ml-2">(${loggedInUser.email})</span>
+</h2>
+
+<!-- ADMIN OVERVIEW CARDS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+<!-- Card 1: Pending Verification -->
+<div class="p-6 bg-yellow-100 rounded-xl shadow-lg border-l-4 border-yellow-500">
+<p class="text-sm font-medium text-yellow-700">Pending Verification</p>
+<p class="text-4xl font-extrabold text-yellow-900 mt-1">14</p>
+<button onclick="showMessage('View Details', 'Viewing 14 pending recipient verification requests.', false)" class="mt-3 text-xs text-yellow-600 hover:text-yellow-800 font-semibold">Review →</button>
+</div>
+<!-- Card 2: New Donations Today -->
+<div class="p-6 bg-green-100 rounded-xl shadow-lg border-l-4 border-green-500">
+<p class="text-sm font-medium text-green-700">New Donations Today</p>
+<p class="text-4xl font-extrabold text-green-900 mt-1">₹45,210</p>
+<button onclick="showMessage('View Details', 'Viewing today\'s donation reports.', false)" class="mt-3 text-xs text-green-600 hover:text-green-800 font-semibold">Generate Report →</button>
+</div>
+<!-- Card 3: Critical Campaigns -->
+<div class="p-6 bg-red-100 rounded-xl shadow-lg border-l-4 border-red-500">
+<p class="text-sm font-medium text-red-700">Critical Campaigns</p>
+<p class="text-4xl font-extrabold text-red-900 mt-1">2</p>
+<button onclick="showMessage('View Details', 'Focusing on critical campaigns for immediate resource allocation.', false)" class="mt-3 text-xs text-red-600 hover:text-red-800 font-semibold">Prioritize →</button>
+</div>
+<!-- Card 4: Active Projects -->
+<div class="p-6 bg-blue-100 rounded-xl shadow-lg border-l-4 border-blue-500">
+<p class="text-sm font-medium text-blue-700">Total Active Projects</p>
+<p class="text-4xl font-extrabold text-blue-900 mt-1">45</p>
+<button onclick="showMessage('View Details', 'Viewing full list of active projects and their status.', false)" class="mt-3 text-xs text-blue-600 hover:text-blue-800 font-semibold">Manage All →</button>
+</div>
+</div>
+
+<!-- ADMIN ACTIONS & TO-DO -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+<!-- Main Action Panel (2/3) -->
+<div class="lg:col-span-2 bg-white p-8 rounded-xl shadow-2xl space-y-6">
+<h3 class="text-2xl font-bold text-gray-800 border-b pb-3">Core Administration Tasks</h3>
+
+<!-- Action 1: Create New Campaign -->
+<div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition">
+<span class="font-medium text-gray-700 flex items-center space-x-3">
+<span class="text-xl">➕</span>
+<span>Launch New Urgent Campaign</span>
+</span>
+<button onclick="showMessage('Admin Action', 'Opening campaign creation wizard.', false)"
+class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition">
+Start Now
+</button>
+</div>
+
+<!-- Action 2: Manage Recipients -->
+<div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition">
+<span class="font-medium text-gray-700 flex items-center space-x-3">
+<span class="text-xl">👤</span>
+<span>Manage Recipient Database</span>
+</span>
+<button onclick="showMessage('Admin Action', 'Accessing recipient management system.', false)"
+class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+Go to List
+</button>
+</div>
+
+<!-- Action 3: Finance and Audits -->
+<div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition">
+<span class="font-medium text-gray-700 flex items-center space-x-3">
+<span class="text-xl">💰</span>
+<span>View Financial Reports & Audits</span>
+</span>
+<button onclick="showMessage('Admin Action', 'Accessing secure finance reporting module.', false)"
+class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">
+View Data
+</button>
+</div>
+</div>
+
+<!-- Sidebar To-Do List (1/3) -->
+<div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-2xl">
+<h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
+<span class="text-2xl">📋</span>
+<span>Admin To-Do List</span>
+</h3>
+<ul class="space-y-3">
+<li class="flex items-start space-x-2">
+<input type="checkbox" id="task1" class="mt-1 form-checkbox h-5 w-5 text-red-600 rounded">
+<label for="task1" class="text-gray-700">Approve 5 pending donation disbursements.</label>
+</li>
+<li class="flex items-start space-x-2">
+<input type="checkbox" id="task2" class="mt-1 form-checkbox h-5 w-5 text-red-600 rounded">
+<label for="task2" class="text-gray-700">Schedule review meeting with Charity partners.</label>
+</li>
+<li class="flex items-start space-x-2">
+<input type="checkbox" id="task3" class="mt-1 form-checkbox h-5 w-5 text-red-600 rounded" checked>
+<label for="task3" class="text-gray-500 line-through">Finalize Q4 spending report.</label>
+</li>
+</ul>
+</div>
+</div>
+</div>
+`;
+}
+
+// Check if user is logged in
+window.onload = function() {
+if (!localStorage.getItem('loggedInUser')) {
+// Redirect to login if not authenticated
+window.location.href = 'loginindex.html';
+return;
+}
+renderAdminDashboard();
+};
+</script>
+</body>
+</html>

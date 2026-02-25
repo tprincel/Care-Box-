@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Dashboard - CareBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        #message-box {
+            z-index: 1000;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .max-h-0 {
+            max-height: 0;
+        }
+
+        .max-h-screen {
+            max-height: 100vh;
+        }
+
+        /* Mission Card Styles */
+        .mission-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .mission-title {
+            background: linear-gradient(90deg, #1e40af, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mission-image {
+            height: 160px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .mission-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+        }
+
+        .mission-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        @media (max-width: 767px) {
+            .history-card {
+                border: 1px solid #e5e7eb;
+                border-radius: 0.75rem;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                background-color: #ffffff;
+                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            }
+
+            .history-card div {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.25rem 0;
+                border-bottom: 1px dashed #f3f4f6;
+            }
+
+            .history-card div:last-child {
+                border-bottom: none;
+            }
+
+            .history-card .label {
+                font-weight: 600;
+                color: #4b5563;
+                font-size: 0.875rem;
+            }
+
+            .history-card .value {
+                text-align: right;
+                max-width: 60%;
+            }
+
+            .mission-image {
+                height: 140px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Message Box -->
+    <div id="message-box"
+        class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center hidden opacity-0">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full">
+            <h3 id="message-title" class="text-xl font-bold mb-3 text-red-600"></h3>
+            <p id="message-body" class="text-gray-700 mb-4"></p>
+            <button onclick="hideMessage()"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">
+                Okay
+            </button>
+        </div>
+    </div>
+
+    <!-- Donor Dashboard Container -->
+    <div id="app" class="bg-gray-100 min-h-screen">
+        <!-- Content will be rendered here -->
+    </div>
+
+    <script>
+        // STATE MANAGEMENT
+        let currentPage = 'dashboard'; // 'dashboard' or 'history'
+        let isPersonalizedOpen = false;
+
+        // Get user data from localStorage
+        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || { name: 'Donor', email: '' };
+
+        // MISSION DATA WITH UPDATED TITLES AND LINKS
+        const missionCards = [
+            {
+                id: 1,
+                title: "Support a Child",
+                description: "Help orphaned children find love and care - support now!",
+                taxBenefit: false,
+                color: "blue",
+                image: "https://borgenproject.org/wp-content/uploads/Orphans-in-India.jpg",
+                link: "supportachild.html"
+            },
+            {
+                id: 2,
+                title: "Feed the Needy",
+                description: "Help feed those in need - provide a meal today!",
+                taxBenefit: false,
+                color: "green",
+                image: "https://www.hanumansenadelhi.com/public/uploads/1747200780_b807389029dd840983e7.jpg",
+                link: "feedtheneedy.html"
+            },
+            {
+                id: 3,
+                title: "Save Aravali",
+                description: "Support environmental initiatives for clean air",
+                taxBenefit: false,
+                color: "teal",
+                image: "https://media.istockphoto.com/id/1313644125/photo/environment-nature-and-deforestation-cutting-down-and-felling-of-trees-in-a-forest.jpg?s=612x612&w=0&k=20&c=6iMLGW0ETQgnlPLfWgOxL92dMvO2knIOYWXZYBCz2Jc=",
+                link: "saveavali.html"
+            },
+            {
+                id: 4,
+                title: "Safe Water for All",
+                description: "Provide access to clean drinking water",
+                taxBenefit: false,
+                color: "cyan",
+                image: "https://pbs.twimg.com/media/FObSB0PaMAM_V_o.jpg",
+                link: "#"
+            }
+        ];
+
+        // DATA ARRAYS
+        const urgentCauses = [
+            {
+                title: "Support Education for 500 Underprivileged Children",
+                raised: 250000,
+                goal: 500000,
+                daysLeft: 7,
+                donors: 100,
+                mainColor: 'purple',
+                isCritical: false,
+                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSj29CWug5QTJhs0ANxDIeckOKy5kMhjGZ5pg&s"
+            },
+            {
+                title: "Life-Saving Supplies for Rural Medical Camps",
+                raised: 50000,
+                goal: 300000,
+                daysLeft: 14,
+                donors: 45,
+                mainColor: 'blue',
+                isCritical: false,
+                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXCDfVoEZu_CUvEePj6ziAjQvSnu5HpHx47Q&s"
+            },
+            {
+                title: "Emergency Relief for Chennai Flooding Victims",
+                raised: 650000,
+                goal: 750000,
+                daysLeft: 2,
+                donors: 520,
+                mainColor: 'red',
+                isCritical: true,
+                image: "https://images.news18.com/ibnlive/uploads/2023/12/chennai-rain-cyclone-michaung-updates-2023-12-72be5ff2bf0fc193b289a0be1167868c.jpg"
+            }
+        ];
+
+        const generalCauses = [
+            { title: "Education", donors: 540, icon: "📚" },
+            { title: "Health", donors: 320, icon: "🩺" },
+            { title: "Animal Welfare", donors: 150, icon: "🐾" },
+            { title: "Needy Family", donors: 410, icon: "🏡" },
+            { title: "Clothes", donors: 200, icon: "👕" },
+        ];
+
+        const microDonations = [
+            { item: "Pencil Kit", donors: 450, icon: "✏️", color: 'yellow' },
+            { item: "Notebook (Single)", donors: 310, icon: "📓", color: 'orange' },
+            { item: "Meal for Street Animal", donors: 120, icon: "🍜", color: 'red' },
+            { item: "Set of Crayons", donors: 55, icon: "🖍️", color: 'blue' },
+            { item: "Hygiene Soap Bar", donors: 600, icon: "🧼", color: 'pink' },
+            { item: "Old Toys (Set)", donors: 90, icon: "🧸", color: 'purple' },
+        ];
+
+        const IMPACT_DATA = [
+            { title: "Active Donors", value: "25,000+", color: "green" },
+            { title: "Causes Supported", value: "1,200+", color: "blue" },
+            { title: "Total Donations", value: "₹2.4M+", color: "yellow" },
+            { title: "Lives Impacted", value: "15,000+", color: "pink" },
+        ];
+
+        const donorHistory = [
+            { id: 1, cause: "Education for 500 Underprivileged Children", amount: 2500, date: "2024-10-15", status: "Completed", feedback: "Pencils, notebooks, and school bags were successfully delivered to the local school on 2024-10-17. The children were thrilled!", feedbackAvailable: true, statusColor: "green" },
+            { id: 2, cause: "Emergency Relief for Chennai Flooding Victims", amount: 10000, date: "2024-09-28", status: "Completed", feedback: "Funds used to purchase essential medicines and clean water. Your impact helped 12 families immediately. Thank you for your swift generosity.", feedbackAvailable: true, statusColor: "green" },
+            { id: 3, cause: "Set of Crayons (Micro Donation)", amount: 50, date: "2024-09-01", status: "Completed", feedback: "Crayons used in an art therapy session. The recipient drew a picture of their family and seemed happy! Thank you for this small, meaningful gift.", feedbackAvailable: true, statusColor: "green" },
+            { id: 4, cause: "Life-Saving Supplies for Rural Medical Camps", amount: 1500, date: "2024-08-20", status: "In Progress", feedback: "Awaiting final delivery confirmation from the logistics partner. Expected completion: 2024-11-05. We will update this status as soon as we receive confirmation.", feedbackAvailable: false, statusColor: "yellow" },
+            { id: 5, cause: "Needy Family Support (General)", amount: 1450, date: "2024-07-10", status: "Completed", feedback: "Used for a month's worth of groceries for a family of four in need, ensuring they had enough to eat this month.", feedbackAvailable: true, statusColor: "green" },
+            { id: 6, cause: "Animal Welfare (Micro-Meal)", amount: 100, date: "2024-06-05", status: "In Progress", feedback: "Your donation is being processed for meal distribution to street animals. Expected completion: 2024-11-10.", feedbackAvailable: false, statusColor: "yellow" },
+        ];
+
+        const APP_CONTAINER = document.getElementById('app');
+        const MESSAGE_BOX = document.getElementById('message-box');
+
+        // UTILITY FUNCTIONS
+        function showMessage(title, body, isError = true) {
+            document.getElementById('message-title').textContent = title;
+            document.getElementById('message-title').className = isError ? 'text-xl font-bold mb-3 text-red-600' : 'text-xl font-bold mb-3 text-green-600';
+            document.getElementById('message-body').innerHTML = body;
+            MESSAGE_BOX.classList.remove('hidden');
+            setTimeout(() => MESSAGE_BOX.classList.remove('opacity-0'), 10);
+        }
+
+        function hideMessage() {
+            MESSAGE_BOX.classList.add('opacity-0');
+            setTimeout(() => MESSAGE_BOX.classList.add('hidden'), 300);
+        }
+
+        function changePage(pageName) {
+            currentPage = pageName;
+            renderPage();
+            window.scrollTo(0, 0);
+        }
+
+        function togglePersonalized() {
+            isPersonalizedOpen = !isPersonalizedOpen;
+            renderPage();
+        }
+
+        function handleCustomDonation() {
+            const customItem = document.getElementById('customDonationItem');
+            if (customItem) {
+                const value = customItem.value.trim();
+                if (value) {
+                    localStorage.setItem('selectedDonation', JSON.stringify({
+                        type: 'custom',
+                        item: value,
+                        amount: 'custom'
+                    }));
+                    window.location.href = 'donatebutton.html';
+                } else {
+                    showMessage('Input Required', 'Please type the name of the item you wish to donate.', true);
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('loggedInUser');
+            window.location.href = 'loginindex.html';
+        }
+
+        function redirectToMakeDifference(missionData) {
+            if (missionData.id === 4) {
+                localStorage.setItem('selectedMission', JSON.stringify(missionData));
+                window.location.href = 'makeadifference.html';
+            }
+        }
+
+        function handleMissionCardClick(missionData) {
+            if (missionData.link && missionData.link !== '#') {
+                window.location.href = missionData.link;
+            } else if (missionData.id === 4) {
+                redirectToMakeDifference(missionData);
+            }
+        }
+
+        function redirectToDonateNowPage(donationData) {
+            localStorage.setItem('selectedDonation', JSON.stringify(donationData));
+            window.location.href = 'donatenowbutton.html';
+        }
+
+        function redirectToDonateButtonPage(donationData) {
+            localStorage.setItem('selectedDonation', JSON.stringify(donationData));
+            window.location.href = 'donatebutton.html';
+        }
+
+        function redirectToReadFullStory() {
+            localStorage.setItem('currentStory', JSON.stringify({
+                title: "A New Beginning for Riya",
+                location: "Mumbai",
+                date: "Nov 2024",
+                content: "Riya, a single mother of two, lost her small business in the recent lockdowns. Thanks to your support for our 'Family Sustenance' cause, she received micro-funding to restart her tailoring shop. She is now self-sufficient and employs two neighbors."
+            }));
+            window.location.href = 'readfullstory.html';
+        }
+
+        // HELPER FUNCTIONS
+        function createMissionCard(mission) {
+            let buttonHtml;
+
+            if (mission.link && mission.link !== '#') {
+                buttonHtml = `
+                    <button onclick="window.location.href='${mission.link}'"
+                    class="w-full bg-${mission.color}-600 text-white font-semibold py-2 rounded-lg hover:bg-${mission.color}-700 transition text-sm">
+                    ${mission.id === 1 ? 'Support a Child' : mission.id === 2 ? 'Feed the Needy' : mission.id === 3 ? 'Save Aravali' : 'Make a Difference'}
+                    </button>
+                `;
+            } else {
+                buttonHtml = `
+                    <button onclick="redirectToMakeDifference({
+                        id: ${mission.id},
+                        title: '${mission.title}',
+                        description: '${mission.description}',
+                        color: '${mission.color}',
+                        image: '${mission.image}',
+                        taxBenefit: ${mission.taxBenefit}
+                    })"
+                    class="w-full bg-${mission.color}-600 text-white font-semibold py-2 rounded-lg hover:bg-${mission.color}-700 transition text-sm">
+                    Make a Difference
+                    </button>
+                `;
+            }
+
+            return `
+<div class="mission-card rounded-xl shadow-lg border border-gray-200 hover:shadow-xl overflow-hidden">
+<div class="mission-image" style="background-image: url('${mission.image}')">
+<div class="mission-overlay">
+<h3 class="text-white text-lg font-bold drop-shadow-md">${mission.title}</h3>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-center mb-2">
+<div>
+<p class="text-gray-600 text-sm">${mission.description}</p>
+</div>
+</div>
+${buttonHtml}
+</div>
+</div>
+`;
+        }
+
+        function createProgressCard(cause) {
+            const mainColor = cause.mainColor;
+            const progressPercent = Math.min(100, (cause.raised / cause.goal) * 100).toFixed(0);
+            const formattedRaised = cause.raised.toLocaleString('en-IN');
+            const formattedGoal = cause.goal.toLocaleString('en-IN');
+
+            return `
+<div class="bg-white rounded-xl shadow-lg border-t-4 border-${mainColor}-600 overflow-hidden">
+    <!-- Image Section -->
+    <div class="mission-image" style="background-image: url('${cause.image}')">
+        <div class="mission-overlay">
+            <h3 class="text-white text-lg font-bold drop-shadow-md">${cause.title}</h3>
+        </div>
+    </div>
+    
+    <!-- Content Section -->
+    <div class="p-4">
+        <div class="flex items-center mb-3">
+            <span class="mr-1">⏳</span>
+            <span class="text-sm font-bold text-${mainColor}-600 bg-${mainColor}-100 rounded-full px-2 py-0.5">${cause.daysLeft}</span>
+            <span class="ml-1 text-xs text-gray-600">Days Left</span>
+            ${cause.isCritical ? `<span class="ml-2 px-2 py-0.5 text-xs bg-red-600 text-white rounded-full font-bold">CRITICAL</span>` : ''}
+        </div>
+        <div class="mb-4">
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-${mainColor}-600 h-2 rounded-full transition-all duration-500 ease-out" style="width: ${progressPercent}%"></div>
+            </div>
+            <div class="flex justify-between mt-1">
+                <span class="text-xs font-bold text-${mainColor}-600">${progressPercent}%</span>
+                <span class="text-xs text-gray-600">Goal: ₹${formattedGoal}</span>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 text-center border-t border-gray-100 pt-3 divide-x divide-gray-200">
+            <div class="p-2">
+                <p class="text-lg font-bold text-green-600">₹${formattedRaised}</p>
+                <p class="text-xs text-gray-500">Raised</p>
+            </div>
+            <div class="p-2">
+                <p class="text-lg font-bold text-red-600">${cause.donors}</p>
+                <p class="text-xs text-gray-500">Donors</p>
+            </div>
+            <div class="p-2">
+                <p class="text-lg font-bold text-blue-600">₹${formattedGoal}</p>
+                <p class="text-xs text-gray-500">Needed</p>
+            </div>
+        </div>
+        <button onclick="redirectToDonateNowPage({
+            type: 'urgent',
+            title: '${cause.title.replace(/'/g, "\\'")}',
+            raised: ${cause.raised},
+            goal: ${cause.goal},
+            daysLeft: ${cause.daysLeft},
+            donors: ${cause.donors},
+            mainColor: '${cause.mainColor}',
+            isCritical: ${cause.isCritical}
+        })"
+        class="mt-4 w-full bg-${mainColor}-600 text-white font-semibold py-2 rounded-lg hover:bg-${mainColor}-700 transition">
+            Donate Now
+        </button>
+    </div>
+</div>
+`;
+        }
+
+        function createGeneralCauseItem(cause) {
+            return `
+<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:shadow-sm transition">
+<div class="flex items-center">
+<span class="text-lg mr-2">${cause.icon}</span>
+<p class="font-medium text-gray-700">${cause.title}</p>
+</div>
+<div class="flex items-center space-x-2">
+<span class="text-xs font-bold text-gray-500">${cause.donors}</span>
+<button onclick="redirectToDonateButtonPage({
+    type: 'general',
+    category: '${cause.title}',
+    icon: '${cause.icon}',
+    donors: ${cause.donors}
+})"
+class="px-2 py-1 text-xs bg-blue-500 text-white font-semibold rounded-full hover:bg-blue-600 transition">
+Donate
+</button>
+</div>
+</div>
+`;
+        }
+
+        function createMicroDonationItem(donation) {
+            return `
+<div class="flex items-center justify-between p-2 bg-white border-b border-gray-100 last:border-b-0">
+<div class="flex items-center">
+<span class="text-sm mr-2">${donation.icon}</span>
+<p class="text-xs text-gray-700">${donation.item}</p>
+</div>
+<div class="flex items-center space-x-1">
+<span class="text-xs text-gray-500">${donation.donors}</span>
+<button onclick="redirectToDonateButtonPage({
+    type: 'micro',
+    item: '${donation.item}',
+    icon: '${donation.icon}',
+    donors: ${donation.donors},
+    color: '${donation.color}'
+})"
+class="px-2 py-0.5 text-xs bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 transition">
+Donate
+</button>
+</div>
+</div>
+`;
+        }
+
+        function createImpactBoxHtml() {
+            return `
+<div class="p-4 bg-white rounded-xl shadow-lg border-t-4 border-yellow-500">
+<h2 class="text-lg font-bold text-gray-800 mb-4">Our Impact</h2>
+<div class="grid grid-cols-2 gap-3">
+${IMPACT_DATA.map(item => `
+<div class="p-2 bg-${item.color}-50 rounded-lg text-center">
+<p class="text-xl font-bold text-${item.color}-600">${item.value}</p>
+<p class="text-xs text-gray-500 mt-1">${item.title}</p>
+</div>
+`).join('')}
+</div>
+</div>
+`;
+        }
+
+        function createTrackingBoxHtml() {
+            const lastDonationAmount = 2500;
+            const totalDonated = 15500;
+            const formattedLastDonation = lastDonationAmount.toLocaleString('en-IN');
+            const formattedTotalDonated = totalDonated.toLocaleString('en-IN');
+
+            return `
+<div class="p-4 bg-white rounded-xl shadow-lg border-t-4 border-teal-500">
+<h2 class="text-lg font-bold text-teal-700 mb-3 flex items-center">
+<span class="text-lg mr-2">📈</span>
+<span>My Donation Tracking</span>
+</h2>
+<div class="space-y-3">
+<div class="flex justify-between items-center p-2 bg-teal-50 rounded-lg">
+<p class="text-sm text-teal-800">Last Donation</p>
+<p class="text-lg font-bold text-teal-600">₹${formattedLastDonation}</p>
+</div>
+<div class="flex justify-between items-center p-2 bg-teal-50 rounded-lg">
+<p class="text-sm text-teal-800">Total Donated</p>
+<p class="text-lg font-bold text-teal-600">₹${formattedTotalDonated}</p>
+</div>
+<button onclick="changePage('history')"
+class="w-full px-3 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition text-sm">
+View Transaction History
+</button>
+</div>
+</div>
+`;
+        }
+
+        function getStatusBadge(status, color) {
+            const statusClasses = {
+                'green': 'bg-green-100 text-green-700 border-green-400',
+                'yellow': 'bg-yellow-100 text-yellow-700 border-yellow-400',
+                'red': 'bg-red-100 text-red-700 border-red-400',
+            };
+            return `<span class="px-2 py-1 text-xs font-bold rounded-full border ${statusClasses[color] || 'bg-gray-100 text-gray-700'}">${status}</span>`;
+        }
+
+        // PAGE RENDERING
+        function renderDonorDashboard() {
+            const missionCardsHtml = missionCards.map(createMissionCard).join('');
+            const allCauseCardsHtml = urgentCauses.map(cause => createProgressCard(cause)).join('');
+            const generalCauseListHtml = generalCauses.map(createGeneralCauseItem).join('');
+            const microDonationListHtml = microDonations.map(d => createMicroDonationItem(d)).join('');
+            const impactBoxHtml = createImpactBoxHtml();
+            const trackingBoxHtml = createTrackingBoxHtml();
+
+            const storiesBoxHtml = `
+<div class="p-4 bg-white rounded-xl shadow-lg border-t-4 border-pink-500">
+<h2 class="text-lg font-bold text-pink-700 mb-3 flex items-center">
+<span class="text-lg mr-2">✨</span>
+<span>Stories that Inspire</span>
+</h2>
+<div class="bg-pink-50 p-3 rounded-lg border-l-4 border-pink-400 mb-3">
+<h3 class="font-semibold text-gray-800 text-sm mb-1">A New Beginning for Riya</h3>
+<p class="text-xs text-gray-600 leading-relaxed line-clamp-3">
+Riya, a single mother of two, lost her small business in the recent lockdowns. Thanks to your support for our 'Family Sustenance' cause...
+</p>
+<div class="flex items-center space-x-2 text-xs text-pink-600 mt-2 font-medium">
+<span>📍 Mumbai</span>
+<span>|</span>
+<span>🗓️ Nov 2024</span>
+</div>
+</div>
+<button onclick="redirectToReadFullStory()"
+class="w-full px-3 py-2 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 transition text-sm">
+Read Full Story
+</button>
+</div>
+`;
+
+            APP_CONTAINER.innerHTML = `
+<div class="w-full max-w-7xl mx-auto px-4 py-6">
+<div class="flex justify-between items-center mb-4">
+<h1 class="text-2xl font-bold text-green-700">Donor Dashboard</h1>
+<button onclick="logout()" class="px-3 py-1 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm">
+Logout
+</button>
+</div>
+<h2 class="text-lg font-semibold text-gray-800 mb-6">
+Hi, <span class="text-green-700 font-bold">${loggedInUser.name}</span>!
+</h2>
+
+<!-- NEW: Contribute Now Section - ALL 4 CARDS IN ONE ROW -->
+<section class="mb-8">
+<h3 class="text-2xl font-bold text-blue-800 mb-4">Contribute Now</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+${missionCardsHtml}
+</div>
+</section>
+
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+<!-- Left Column - Main Content -->
+<div class="lg:col-span-3 space-y-4">
+<!-- Urgent Donation Drives -->
+<section class="bg-white p-4 rounded-xl shadow-lg">
+<h3 class="text-xl font-bold text-gray-800 mb-4">🔥 Urgent Donation Drives</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+${allCauseCardsHtml}
+</div>
+</section>
+
+<!-- General Causes -->
+<section class="bg-white p-4 rounded-xl shadow-lg">
+<h3 class="text-xl font-bold text-gray-800 mb-4">📊 Every Help Counts</h3>
+<div class="space-y-3">
+${generalCauseListHtml}
+</div>
+</section>
+
+<!-- Personalized Micro-Donations -->
+<section class="bg-white p-4 rounded-xl shadow-lg">
+<div class="flex justify-between items-center cursor-pointer" onclick="togglePersonalized()">
+<h3 class="text-xl font-bold text-blue-800 flex items-center">
+<span class="text-xl mr-2">🎁</span>
+<span>Personalized Micro-Donations</span>
+</h3>
+<button class="text-blue-600 focus:outline-none">
+<svg id="toggleIcon" class="w-5 h-5 transform transition-transform duration-300 ${isPersonalizedOpen ? 'rotate-180' : 'rotate-0'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+</svg>
+</button>
+</div>
+<div id="personalizedContent" class="overflow-hidden transition-all duration-500 ease-in-out ${isPersonalizedOpen ? 'max-h-screen pt-3 mt-3 border-t border-blue-200' : 'max-h-0'}">
+<p class="text-sm text-gray-600 mb-3">Support specific items needed by recipients.</p>
+<div class="bg-gray-50 p-3 rounded-lg space-y-2 mb-3">
+${microDonationListHtml}
+</div>
+<div class="p-3 bg-blue-50 rounded-lg">
+<p class="font-semibold text-gray-800 mb-2 text-sm">Can't find what you want to donate?</p>
+<div class="flex space-x-2">
+<input type="text" id="customDonationItem" placeholder="e.g., A school bag, a blanket"
+class="flex-grow px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-sm">
+<button onclick="handleCustomDonation()"
+class="px-3 py-2 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition text-sm">
+Request
+</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+
+<!-- Right Column - Sidebar -->
+<div class="lg:col-span-1 space-y-4">
+${trackingBoxHtml}
+${impactBoxHtml}
+${storiesBoxHtml}
+</div>
+</div>
+</div>
+`;
+        }
+
+        function renderTransactionHistory() {
+            const renderRow = (transaction) => {
+                const formattedAmount = transaction.amount.toLocaleString('en-IN');
+                const statusBadge = getStatusBadge(transaction.status, transaction.statusColor);
+
+                const desktopRow = `
+<tr class="border-b hover:bg-gray-50 transition">
+<td class="px-4 py-3 font-medium text-gray-900 text-sm">${transaction.cause}</td>
+<td class="px-4 py-3 text-center text-sm">${transaction.date}</td>
+<td class="px-4 py-3 font-bold text-teal-600 text-right text-sm">₹${formattedAmount}</td>
+<td class="px-4 py-3 text-center">${statusBadge}</td>
+<td class="px-4 py-3 text-sm text-gray-600 max-w-xs">
+${transaction.feedbackAvailable
+                        ? `<p class="line-clamp-2 text-xs">${transaction.feedback}</p>`
+                        : `<span class="text-gray-500 italic text-xs">${transaction.status === 'Cancelled' ? 'N/A' : 'Awaiting confirmation...'}</span>`
+                    }
+</td>
+<td class="px-4 py-3 text-center">
+${transaction.feedbackAvailable
+                        ? `<button onclick="showMessage('Feedback Detail', 'Cause: ${transaction.cause} <br><br> ${transaction.feedback}', false)" 
+class="px-2 py-1 text-xs bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">View</button>`
+                        : `<button disabled class="px-2 py-1 text-xs bg-gray-300 text-gray-600 rounded-full cursor-not-allowed">View</button>`
+                    }
+</td>
+</tr>
+`;
+
+                const mobileCard = `
+<div class="history-card">
+<div>
+<span class="label">Cause</span>
+<span class="value text-right font-semibold text-gray-800">${transaction.cause}</span>
+</div>
+<div>
+<span class="label">Date</span>
+<span class="value">${transaction.date}</span>
+</div>
+<div>
+<span class="label">Amount</span>
+<span class="value font-bold text-teal-600">₹${formattedAmount}</span>
+</div>
+<div>
+<span class="label">Status</span>
+<span class="value">${statusBadge}</span>
+</div>
+<div>
+<span class="label">Feedback</span>
+<span class="value">
+${transaction.feedbackAvailable
+                        ? `<button onclick="showMessage('Feedback Detail', 'Cause: ${transaction.cause} <br><br> ${transaction.feedback}', false)" 
+class="px-2 py-1 text-xs bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">View Details</button>`
+                        : `<span class="text-xs text-gray-500 italic">${transaction.status === 'Cancelled' ? 'N/A' : 'Awaiting'}</span>`
+                    }
+</span>
+</div>
+</div>
+`;
+
+                return `
+<div class="hidden md:table-row">${desktopRow}</div>
+<div class="md:hidden">${mobileCard}</div>
+`;
+            };
+
+            const historyRows = donorHistory.map(renderRow).join('');
+
+            APP_CONTAINER.innerHTML = `
+<div class="w-full max-w-6xl mx-auto px-4 py-6">
+<div class="flex justify-between items-center mb-4">
+<h1 class="text-2xl font-bold text-teal-700">Transaction History</h1>
+<button onclick="changePage('dashboard')" class="px-3 py-1 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm">
+← Back to Dashboard
+</button>
+</div>
+<p class="text-sm text-gray-600 mb-6">
+Tracking the impact of every rupee: Cause, Status, and Personalized Recipient Feedback.
+</p>
+<div class="bg-white rounded-xl shadow-lg overflow-x-auto p-3">
+<table class="w-full text-sm text-left text-gray-500 hidden md:table">
+<thead class="text-xs text-gray-700 uppercase bg-gray-50">
+<tr>
+<th scope="col" class="px-4 py-3">Cause / Item Donated</th>
+<th scope="col" class="px-4 py-3 text-center">Date</th>
+<th scope="col" class="px-4 py-3 text-right">Amount</th>
+<th scope="col" class="px-4 py-3 text-center">Status</th>
+<th scope="col" class="px-4 py-3">Recipient Feedback</th>
+<th scope="col" class="px-4 py-3 text-center">Action</th>
+</tr>
+</thead>
+<tbody>
+${historyRows.replace(/<div class="md:hidden">.*?<\/div>/g, '')}
+</tbody>
+</table>
+<div class="md:hidden space-y-3">
+${historyRows.replace(/<div class="hidden md:table-row">.*?<\/div>/g, '')}
+</div>
+${donorHistory.length === 0 ? '<p class="text-center py-4 text-gray-500 text-sm">No transactions found.</p>' : ''}
+</div>
+<div class="mt-6 text-center">
+<button onclick="showMessage('Download Report', 'Generating PDF statement for your donation history.', false)" 
+class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm">
+Download Full Report (PDF)
+</button>
+</div>
+</div>
+`;
+        }
+
+        function renderPage() {
+            if (currentPage === 'dashboard') {
+                renderDonorDashboard();
+            } else if (currentPage === 'history') {
+                renderTransactionHistory();
+            } else {
+                renderDonorDashboard();
+            }
+        }
+
+        // Check if user is logged in
+        window.onload = function () {
+            if (!localStorage.getItem('loggedInUser')) {
+                window.location.href = 'loginindex.html';
+                return;
+            }
+            renderPage();
+        };
+    </script>
+</body>
+
+</html>

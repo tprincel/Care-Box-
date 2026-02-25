@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Donation</title>
+</head>
+<body>
+    <h1>Test Donation to Backend</h1>
+    <form id="donationForm">
+        <p>
+            <label>Donor Name:</label>
+            <input type="text" id="donorName" value="Test Donor" required>
+        </p>
+        <p>
+            <label>Amount (₹):</label>
+            <input type="number" id="amount" value="500" required>
+        </p>
+        <p>
+            <label>Product:</label>
+            <input type="text" id="product" value="Education Kit" required>
+        </p>
+        <p>
+            <label>Campaign:</label>
+            <select id="campaign">
+                <option value="Support a Child">Support a Child</option>
+                <option value="Feed the Needy">Feed the Needy</option>
+                <option value="Save Aravalli">Save Aravalli</option>
+                <option value="Make a Difference">Make a Difference</option>
+            </select>
+        </p>
+        <button type="submit">Donate Now</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('donationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const donorName = document.getElementById('donorName').value;
+            const amount = document.getElementById('amount').value;
+            const product = document.getElementById('product').value;
+            const campaign = document.getElementById('campaign').value;
+            
+            const formData = new FormData();
+            formData.append('donor_name', donorName);
+            formData.append('amount', amount);
+            formData.append('product_name', product);
+            formData.append('campaign_name', campaign);
+            
+            fetch('./backend/api/save_donation.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = 
+                    '<h3 style="color:green">Success!</h3>' +
+                    '<p>Server response: ' + JSON.stringify(data) + '</p>' +
+                    '<p>Check your phpMyAdmin - the donation should be there!</p>';
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = 
+                    '<h3 style="color:red">Error!</h3>' +
+                    '<p>' + error.message + '</p>';
+            });
+        });
+    </script>
+</body>
+</html>

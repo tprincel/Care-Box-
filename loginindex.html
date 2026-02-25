@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareBox - Gift of Giving</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Gift Animation Styles */
+        .gift-container {
+            perspective: 1000px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .gift-container:hover {
+            transform: scale(1.05);
+        }
+
+        .gift-box {
+            width: 200px;
+            height: 200px;
+            background: #00A3E0;
+            /* Professional Cyan/Blue from video */
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        .gift-lid {
+            width: 220px;
+            height: 50px;
+            background: #0088CC;
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            z-index: 2;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Ribbon */
+        .ribbon-v,
+        .ribbon-h {
+            background: #6D28D9;
+            /* Deep purple from video */
+            position: absolute;
+            z-index: 1;
+        }
+
+        .ribbon-v {
+            width: 40px;
+            height: 100%;
+            left: 80px;
+        }
+
+        .ribbon-h {
+            width: 100%;
+            height: 40px;
+            top: 80px;
+        }
+
+        /* Ribbon Bow */
+        .bow {
+            position: absolute;
+            top: -40px;
+            left: 70px;
+            width: 60px;
+            height: 40px;
+            z-index: 3;
+            transition: opacity 0.2s;
+        }
+
+        .bow::before,
+        .bow::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 8px solid #6D28D9;
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(45deg);
+        }
+
+        .bow::after {
+            left: 20px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+        }
+
+        /* Active State (Opened) - Simplified without heart */
+        .gift-container.open .gift-lid {
+            transform: translateY(-60px) rotate(-10deg);
+            opacity: 0;
+        }
+
+        .gift-container.open .bow {
+            opacity: 0;
+        }
+
+        .gift-container.open .gift-box {
+            animation: none;
+            transform: scale(0.95);
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        #message-box {
+            z-index: 1000;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .text-huge {
+            font-size: 4rem;
+        }
+
+        @media (min-width: 768px) {
+            .text-huge {
+                font-size: 8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Message Box -->
+    <div id="message-box"
+        class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center hidden opacity-0">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full">
+            <h3 id="message-title" class="text-xl font-bold mb-3 text-red-600"></h3>
+            <p id="message-body" class="text-gray-700 mb-4"></p>
+            <button onclick="hideMessage()"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">
+                Okay
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="app" class="bg-gray-100 min-h-screen">
+        <!-- Content will be rendered here -->
+    </div>
+
+    <script>
+        // STATE MANAGEMENT
+        let currentPage = 'home';
+        let selectedRole = null;
+        let loggedInUser = { name: 'Donor', email: '' };
+
+        const APP_CONTAINER = document.getElementById('app');
+        const MESSAGE_BOX = document.getElementById('message-box');
+
+        // UTILITY FUNCTIONS
+        function showMessage(title, body, isError = true) {
+            document.getElementById('message-title').textContent = title;
+            document.getElementById('message-title').className = isError ? 'text-xl font-bold mb-3 text-red-600' : 'text-xl font-bold mb-3 text-green-600';
+            document.getElementById('message-body').innerHTML = body;
+            MESSAGE_BOX.classList.remove('hidden');
+            setTimeout(() => MESSAGE_BOX.classList.remove('opacity-0'), 10);
+        }
+
+        function hideMessage() {
+            MESSAGE_BOX.classList.add('opacity-0');
+            setTimeout(() => MESSAGE_BOX.classList.add('hidden'), 300);
+        }
+
+        function changePage(pageName) {
+            currentPage = pageName;
+            renderPage();
+            window.scrollTo(0, 0);
+        }
+
+        function setRoleAndLogin(role) {
+            selectedRole = role;
+            loggedInUser = { name: 'Donor', email: '' };
+            changePage('login');
+        }
+
+        function getNameFromEmail(email) {
+            if (!email) return 'Donor';
+            const namePart = email.split('@')[0];
+            const cleanName = namePart.replace(/[._]/g, ' ')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+            return cleanName || 'Donor';
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('loggedInUser');
+            localStorage.removeItem('userRole');
+            showMessage('Logged Out', 'You have been successfully logged out.', false);
+            setTimeout(() => {
+                hideMessage();
+                changePage('home');
+            }, 1500);
+        }
+
+        // GIFT ANIMATION FUNCTION - Simplified without heart
+        function openGift() {
+            const gift = document.getElementById('gift-trigger');
+            if (gift.classList.contains('open')) return;
+
+            gift.classList.add('open');
+
+            // Immediately go to role selection without waiting for heart animation
+            setTimeout(() => {
+                changePage('roleSelect');
+            }, 300); // Reduced from 1200ms to 300ms for faster transition
+        }
+
+        // Page 1: Landing Page with Gift Animation
+        function renderHome() {
+            APP_CONTAINER.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-screen px-4 py-12 text-center">
+                    <h1 class="text-6xl md:text-8xl font-black text-gray-900 mb-2 tracking-tighter">CareBox</h1>
+                    <p class="text-xl md:text-2xl text-blue-600 font-medium mb-12">Care that Clicks, Help that Sticks</p>
+                    
+                    <!-- Gift Box Interaction - Moved down with margin-top -->
+                    <div class="mt-4 mb-16">
+                        <div id="gift-trigger" class="gift-container mx-auto" onclick="openGift()">
+                            <div class="gift-lid">
+                                <div class="bow"></div>
+                                <div class="ribbon-h" style="top: 10px; height: 30px;"></div>
+                                <div class="ribbon-v" style="left: 90px; width: 40px;"></div>
+                            </div>
+                            <div class="gift-box">
+                                <div class="ribbon-v"></div>
+                                <div class="ribbon-h"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Moved "Why Choose CareBox?" section higher up -->
+                    <div class="mt-8 pt-8 w-full max-w-6xl">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-10">Why Choose CareBox?</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="p-6 bg-green-50 rounded-xl shadow-md transition hover:shadow-xl">
+                                <svg class="w-10 h-10 mx-auto text-green-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm0 0v-8"></path></svg>
+                                <p class="font-bold text-lg mb-2">Real-time Tracking</p>
+                                <p class="text-sm text-gray-600">See exactly where your money goes with live updates and transparent reporting.</p>
+                            </div>
+                            <div class="p-6 bg-red-50 rounded-xl shadow-md transition hover:shadow-xl">
+                                <svg class="w-10 h-10 mx-auto text-red-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm-1 15.918l-3.955-4.004a1.5 1.5 0 010-2.122 1.5 1.5 0 012.122 0L12 14.757l6.833-6.84a1.5 1.5 0 012.122 0 1.5 1.5 0 010 2.122l-7.955 7.955a1.5 1.5 0 01-2.122 0z"></path></svg>
+                                <p class="font-bold text-lg mb-2">Verified Recipients</p>
+                                <p class="text-sm text-gray-600">All recipients are thoroughly vetted to ensure your donation reach those who genuinely need help.</p>
+                            </div>
+                            <div class="p-6 bg-yellow-50 rounded-xl shadow-md transition hover:shadow-xl">
+                                <svg class="w-10 h-10 mx-auto text-yellow-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5.375C17.65 5.375 22 9.073 22 14.5c0 3.31-2.8 6.425-6.57 7.05M12 5.375C6.35 5.375 2 9.073 2 14.5c0 3.31 2.8 6.425 6.57 7.05M12 5.375V2m-3.5 16h7"></path></svg>
+                                <p class="font-bold text-lg mb-2">Personalized Causes</p>
+                                <p class="text-sm text-gray-600">Discover causes that matter to you with our smart matching system based on your interests.</p>
+                            </div>
+                            <div class="p-6 bg-blue-50 rounded-xl shadow-md transition hover:shadow-xl">
+                                <svg class="w-10 h-10 mx-auto text-blue-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 2.895-3 3.895s1.343 3 3 3m0-8V9m0 2v2m0 2v1"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a2 2 0 00-.638-1.442l-3.32-3.48a2 2 0 00-2.222-.524l-1.397.665a2 2 0 00-1.07.606 2 2 0 01-.73.238l-.02.008a2 2 0 00-1.875 0 2 2 0 01-.73-.238l-1.397-.665a2 2 0 00-2.222.524l-3.32 3.48A2 2 0 005 17.72V5z"></path></svg>
+                                <p class="font-bold text-lg mb-2">Micro-donations</p>
+                                <p class="text-sm text-gray-600">Every rupee counts. Start with small amounts and join thousands making a collective impact.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Page 2: Role Selection
+        function renderRoleSelection() {
+            APP_CONTAINER.innerHTML = `
+                <div class="flex items-center justify-center w-full min-h-screen p-4 sm:p-6 bg-gray-100">
+                    <div class="max-w-md w-full bg-white p-10 rounded-xl shadow-2xl text-center">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-2">Login Role Selection</h2>
+                        <p class="text-gray-600 mb-8">Please select your login type to proceed.</p>
+                        <div class="space-y-4">
+                            <button onclick="setRoleAndLogin('donor')"
+                                class="w-full flex items-center justify-center space-x-3 bg-green-500 text-white font-semibold py-4 rounded-lg shadow-md
+                                transform hover:scale-[1.01] hover:bg-green-600 transition">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                                <span class="text-lg">Login as Donor</span>
+                            </button>
+                            <button onclick="setRoleAndLogin('admin')"
+                                class="w-full flex items-center justify-center space-x-3 bg-red-500 text-white font-semibold py-4 rounded-lg shadow-md
+                                hover:bg-red-600 transition transform hover:scale-[1.01]">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span class="text-lg">Login as Admin</span>
+                            </button>
+                            <div class="mt-8 text-center">
+                                <a href="#" onclick="changePage('home')" class="text-sm text-blue-600 hover:text-blue-800 transition">
+                                    ← Back to Home Page
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Page 3: Login Form
+        function renderLogin() {
+            const roleText = selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) + " User";
+            APP_CONTAINER.innerHTML = `
+                <div class="flex items-center justify-center w-full min-h-screen p-4 sm:p-6 bg-gray-100">
+                    <div class="flex flex-col md:flex-row max-w-4xl w-full bg-white rounded-xl shadow-2xl overflow-hidden">
+                        <div class="w-full md:w-1/2 p-8 sm:p-12">
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2">Login as ${roleText}</h2>
+                            <p class="text-gray-600 mb-8">Enter your credentials to continue your journey.</p>
+                            <form id="loginForm" onsubmit="event.preventDefault(); handleLogin(event);">
+
+                                ${selectedRole === 'admin' ? `
+                                <div class="mb-4">
+                                    <label for="memberId" class="block text-sm font-medium text-gray-700">Member ID (8 alphanumeric characters)</label>
+                                    <input type="text" id="memberId" placeholder="Enter your 8-digit Member ID (Admin required)" required maxlength="8"
+                                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <p id="member-id-error" class="text-xs text-red-600 mt-1 hidden font-semibold">
+                                        Test Case: Member ID must be exactly 8 alphanumeric characters (A-Z, 0-9).
+                                    </p>
+                                </div>
+                                ` : ''}
+
+                                <div class="mb-4">
+                                    <label for="email" class="block text-sm font-medium text-gray-700">Email or Username</label>
+                                    <input type="email" id="email" value="${loggedInUser.email}"
+                                        placeholder="Enter your email or username (e.g., user@email.com)" required
+                                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <p id="email-error" class="text-xs text-red-600 mt-1 hidden font-semibold">
+                                        Test Case: Please enter a valid email format (must be name@domain.com).
+                                    </p>
+                                </div>
+                                <div class="mb-6">
+                                    <label for="phone" class="block text-sm font-medium text-gray-700">Password</label>
+                                    <input type="password" id="phone" placeholder="Enter your password" required minlength="6"
+                                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <p id="phone-error" class="text-xs text-red-600 mt-1 hidden font-semibold">
+                                        Password must be at least 6 characters.
+                                    </p>
+                                </div>
+                                <div class="mt-2 text-right">
+                                    <a href="#" onclick="showMessage('Forgot Password', 'This feature is not yet implemented. Please contact support.', false)" class="text-xs text-blue-600 hover:text-blue-800 transition">
+                                        Forgot Password?
+                                    </a>
+                                </div>
+                                <button type="submit"
+                                    class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-blue-700 transition transform hover:scale-[1.01] mb-4">
+                                    Login
+                                </button>
+                                <button type="button" onclick="showMessage('Google Login', 'This feature is not yet implemented.', false)"
+                                    class="w-full flex items-center justify-center space-x-2 border border-gray-300 bg-white text-gray-700 font-semibold
+                                    py-3 rounded-lg shadow-sm hover:bg-gray-50 transition mb-4">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M21.78 11.23c0-.7-.06-1.37-.2-2.01h-9.58v3.6h5.4c-.23 1.13-.88 2.08-1.78 2.76v2.33h2.99c1.74-1.59 2.74-3.92 2.74-6.68z"/><path fill="#34A853" d="M12 22c3.2 0 5.86-1.07 7.82-2.91l-2.99-2.33c-.83.56-1.92.89-3.73.89-2.87 0-5.3-1.93-6.18-4.5h-3.13v2.41c1.55 3.09 5.06 5.14 9.22 5.14z"/><path fill="#FBBC05" d="M5.82 14.5c-.24-.68-.37-1.4-.37-2.15s.13-1.47.37-2.15v-2.41h-3.13c-.63 1.25-.99 2.65-.99 4.56s.36 3.31.99 4.56l3.13-2.41z"/><path fill="#EA4335" d="M12 5.04c1.77 0 3.3.62 4.54 1.78l2.66-2.66C17.86 2.12 15.2 1 12 1 7.84 1 4.33 3.05 2.78 6.14l3.13 2.41c.88-2.57 3.31-4.5 6.18-4.5z"/></svg>
+                                    <span>Continue with Google</span>
+                                </button>
+                                <div class="text-center mt-6 space-y-2">
+                                    <a href="#" onclick="changePage('roleSelect')" class="text-sm text-blue-600 hover:text-blue-800 transition block">
+                                        Choose a different role
+                                    </a>
+                                    ${selectedRole === 'donor' ? `
+                                    <a href="#" onclick="changePage('register')" class="text-sm text-blue-600 hover:text-blue-800 transition block">
+                                        New here? Create an account
+                                    </a>
+                                    ` : ''}
+                                </div>
+                            </form>
+                        </div>
+                        <div class="hidden md:block md:w-1/2 bg-pink-50 p-8 flex flex-col items-center justify-center text-center">
+                            <h3 class="text-2xl font-bold text-pink-800 mb-4">Welcome to CareBox</h3>
+                            <p class="text-pink-600 mb-6">Login to continue making an impact. Your care clicks here!</p>
+                            <img src="https://placehold.co/400x500/FEE2E2/9F1239?text=Care+That+Clicks"
+                                alt="Secure login illustration of hands giving"
+                                class="max-h-full w-auto object-contain rounded-xl shadow-lg">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Login Handler
+        function handleLogin(event) {
+            event.preventDefault();
+
+            const memberIdInput = document.getElementById('memberId');
+            const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
+
+            const memberId = memberIdInput ? memberIdInput.value.trim() : '';
+            const email = emailInput.value.trim();
+            const phone = phoneInput.value.trim();
+            const role = selectedRole;
+
+            let isValid = true;
+            let errorMessage = "Please correct the following errors: \n";
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const memberIdRegex = /^[a-zA-Z0-9]{8}$/;
+
+            // Member ID Validation (Only for Admin)
+            const memberIdError = document.getElementById('member-id-error');
+            if (role === 'admin') {
+                if (!memberIdRegex.test(memberId)) {
+                    memberIdError.classList.remove('hidden');
+                    errorMessage += "- Member ID must be exactly 8 alphanumeric characters (A-Z, 0-9).\n";
+                    isValid = false;
+                } else {
+                    memberIdError.classList.add('hidden');
+                }
+            } else if (memberIdError) {
+                memberIdError.classList.add('hidden');
+            }
+
+            // Email Validation
+            const emailError = document.getElementById('email-error');
+            if (!emailRegex.test(email)) {
+                emailError.classList.remove('hidden');
+                errorMessage += "- Invalid email format (must be name@domain.com).\n";
+                isValid = false;
+            } else {
+                emailError.classList.add('hidden');
+            }
+
+            // Password Validation (min 6 characters)
+            const phoneError = document.getElementById('phone-error');
+            if (phone.length < 6) {
+                phoneError.classList.remove('hidden');
+                errorMessage += "- Password must be at least 6 characters.\n";
+                isValid = false;
+            } else {
+                phoneError.classList.add('hidden');
+            }
+
+            if (isValid) {
+                // Send login data to PHP backend
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('password', phone); // Using phone field as password
+                if (role === 'admin') {
+                    formData.append('member_id', memberId);
+                }
+                
+                const apiUrl = role === 'admin' 
+                    ? 'backend/api/admin_login.php' 
+                    : 'backend/api/donor_login.php';
+                
+                fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loggedInUser.email = email;
+                        loggedInUser.name = getNameFromEmail(email);
+                        showMessage(
+                            'Login Successful!',
+                            `Welcome, ${loggedInUser.name}. You are being redirected to your dashboard.`,
+                            false
+                        );
+                        setTimeout(() => {
+                            hideMessage();
+                            // Store user data in localStorage for other pages to access
+                            localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+                            localStorage.setItem('userRole', role);
+
+                            // Redirect to appropriate dashboard based on role
+                            if (role === 'admin') {
+                                window.location.href = 'admindashboard.html';
+                            } else {
+                                window.location.href = 'donerdashboard.html';
+                            }
+                        }, 1500);
+                    } else {
+                        showMessage('Login Failed', data.message || 'Invalid credentials. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    showMessage('Error', 'Could not connect to server. Please try again.');
+                    console.error('Error:', error);
+                });
+            } else {
+                showMessage('Login Failed', errorMessage);
+            }
+        }
+
+        // Registration Page
+        function renderRegister() {
+            APP_CONTAINER.innerHTML = `
+                <div class="flex items-center justify-center w-full min-h-screen p-4 sm:p-6 bg-gray-100">
+                    <div class="flex flex-col md:flex-row max-w-4xl w-full bg-white rounded-xl shadow-2xl overflow-hidden">
+                        <div class="w-full md:w-1/2 p-8 sm:p-12">
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2">Create Donor Account</h2>
+                            <p class="text-gray-600 mb-8">Join us in making a difference. Your journey starts here.</p>
+                            <form id="registerForm" onsubmit="event.preventDefault(); handleRegister(event);">
+                                <div class="mb-4">
+                                    <label for="regName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                                    <input type="text" id="regName" placeholder="Enter your full name" required
+                                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <p id="reg-name-error" class="text-xs text-red-600 mt-1 hidden font-semibold">
+                                        Please enter your full name.
+                                    </p>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="regEmail" class="block text-sm font-medium text-gray-700">Email Address</label>
+                                    <input type="email" id="regEmail" placeholder="Enter your email (e.g., user@email.com)" required
+                                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <p id="reg-email-error" class="text-xs text-red-600 mt-1 hidden font-semibold">
+                                        Please enter a valid email format.
+                                    </p>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="regPhone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                                    <input type="tel" id="regPhone" placeholder="Enter your phone number" required
+                                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <p id="reg-phone-error" class="text-xs text-red-600 mt-1 hidden font-semibold">
+                                        Please enter a valid phone number.
+                                    </p>
+                                </div>
+                                <div class="mb-6">
+                                    <label for="regPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                                    <input type="password" id="regPassword" placeholder="Create a password (min 6 characters)" required minlength="6"
+                                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <p id="reg-password-error" class="text-xs text-red-600 mt-1 hidden font-semibold">
+                                        Password must be at least 6 characters.
+                                    </p>
+                                </div>
+                                <button type="submit"
+                                    class="w-full bg-green-600 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-green-700 transition transform hover:scale-[1.01] mb-4">
+                                    Create Account
+                                </button>
+                                <div class="text-center mt-6">
+                                    <a href="#" onclick="changePage('login')" class="text-sm text-blue-600 hover:text-blue-800 transition">
+                                        Already have an account? Login here
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="hidden md:block md:w-1/2 bg-green-50 p-8 flex flex-col items-center justify-center text-center">
+                            <h3 class="text-2xl font-bold text-green-800 mb-4">Join CareBox</h3>
+                            <p class="text-green-600 mb-6">Be part of a community that cares. Start your giving journey today!</p>
+                            <img src="https://placehold.co/400x500/DCFCE7/166534?text=Join+Us"
+                                alt="Join our community"
+                                class="max-h-full w-auto object-contain rounded-xl shadow-lg">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Registration Handler
+        function handleRegister(event) {
+            event.preventDefault();
+
+            const nameInput = document.getElementById('regName');
+            const emailInput = document.getElementById('regEmail');
+            const phoneInput = document.getElementById('regPhone');
+            const passwordInput = document.getElementById('regPassword');
+
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const phone = phoneInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            let isValid = true;
+            let errorMessage = "Please correct the following errors: \n";
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            // Name Validation
+            if (name.length < 2) {
+                document.getElementById('reg-name-error').classList.remove('hidden');
+                errorMessage += "- Please enter your full name.\n";
+                isValid = false;
+            } else {
+                document.getElementById('reg-name-error').classList.add('hidden');
+            }
+
+            // Email Validation
+            if (!emailRegex.test(email)) {
+                document.getElementById('reg-email-error').classList.remove('hidden');
+                errorMessage += "- Invalid email format.\n";
+                isValid = false;
+            } else {
+                document.getElementById('reg-email-error').classList.add('hidden');
+            }
+
+            // Phone Validation
+            if (phone.length < 10) {
+                document.getElementById('reg-phone-error').classList.remove('hidden');
+                errorMessage += "- Please enter a valid phone number.\n";
+                isValid = false;
+            } else {
+                document.getElementById('reg-phone-error').classList.add('hidden');
+            }
+
+            // Password Validation
+            if (password.length < 6) {
+                document.getElementById('reg-password-error').classList.remove('hidden');
+                errorMessage += "- Password must be at least 6 characters.\n";
+                isValid = false;
+            } else {
+                document.getElementById('reg-password-error').classList.add('hidden');
+            }
+
+            if (isValid) {
+                // Send registration data to PHP backend
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('email', email);
+                formData.append('phone', phone);
+                formData.append('password', password);
+                
+                fetch('backend/api/donor_register.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage(
+                            'Registration Successful!',
+                            'Your account has been created. Please login to continue.',
+                            false
+                        );
+                        setTimeout(() => {
+                            hideMessage();
+                            changePage('login');
+                        }, 2000);
+                    } else {
+                        showMessage('Registration Failed', data.message || 'Could not create account. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    showMessage('Error', 'Could not connect to server. Please try again.');
+                    console.error('Error:', error);
+                });
+            } else {
+                showMessage('Registration Failed', errorMessage);
+            }
+        }
+
+        // Main rendering switch
+        function renderPage() {
+            switch (currentPage) {
+                case 'home':
+                    renderHome();
+                    break;
+                case 'roleSelect':
+                    renderRoleSelection();
+                    break;
+                case 'login':
+                    renderLogin();
+                    break;
+                case 'register':
+                    renderRegister();
+                    break;
+                default:
+                    renderHome();
+            }
+        }
+
+        // Initial Render
+        window.onload = function () {
+            // Check if user is coming from another page
+            const userData = localStorage.getItem('loggedInUser');
+            if (userData) {
+                loggedInUser = JSON.parse(userData);
+            }
+            renderPage();
+        };
+    </script>
+</body>
+
+</html>

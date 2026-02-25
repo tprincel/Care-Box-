@@ -1,0 +1,27 @@
+# CareBox .htaccess file for InfinityFree hosting
+
+# Enable rewrite engine
+RewriteEngine On
+
+# Set default index page
+DirectoryIndex index.html index.php
+
+# Handle CORS for API requests
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type"
+</IfModule>
+
+# Protect sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Disable directory browsing
+Options -Indexes
+
+# PHP settings (if needed)
+php_value upload_max_filesize 10M
+php_value post_max_size 10M

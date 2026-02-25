@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Transaction</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the dark blue theme */
+        :root {
+            --color-primary-dark: #0A1931;
+            /* Deep Navy Blue */
+            --color-accent-blue: #185ADB;
+            /* Royal Blue */
+            --color-accent-light: #4F46E5;
+            /* Indigo */
+        }
+
+        body {
+            /* Use the new Montserrat font */
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--color-primary-dark);
+        }
+
+        /* Custom shadow for a lifted, professional look on the white card */
+        .card-shadow-modern {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 15px rgba(24, 90, 219, 0.2);
+        }
+
+        /* Keyframe for subtle fade-in effect */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+
+        /* Input specific CSS to remove the scrolling/stepper buttons from the number input */
+        #paymentAmount::-webkit-outer-spin-button,
+        #paymentAmount::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        #paymentAmount[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+
+<body class="bg-blue-900 text-gray-900">
+    <div class="min-h-screen flex items-center justify-center p-4">
+
+        <!-- 1. Payment Options Screen (Initial View) -->
+        <div id="paymentOptionsScreen"
+            class="w-full max-w-md bg-white p-8 rounded-2xl card-shadow-modern transition-all duration-300">
+            <h1 class="text-2xl font-extrabold text-gray-900 mb-8 text-center tracking-wider">SELECT PAYMENT OPTION</h1>
+
+            <div class="space-y-4">
+                <!-- QR Code Button - Accent Blue -->
+                <button onclick="handlePaymentOption('qr')"
+                    class="w-full py-4 bg-[--color-accent-blue] hover:bg-[#154fc0] text-white font-bold rounded-lg transition duration-200 shadow-lg shadow-blue-400/50 transform hover:scale-[1.01]">
+                    QR CODE
+                </button>
+
+                <!-- Insert Card Button - Accent Light (Card-specific color) -->
+                <button onclick="handlePaymentOption('card')"
+                    class="w-full py-4 bg-[--color-accent-light] hover:bg-[#4338CA] text-white font-bold rounded-lg transition duration-200 shadow-lg shadow-indigo-400/50 transform hover:scale-[1.01]">
+                    INSERT CARD
+                </button>
+
+                <!-- UPI Button - Accent Blue -->
+                <button onclick="handlePaymentOption('upi')"
+                    class="w-full py-4 bg-[--color-accent-blue] hover:bg-[#154fc0] text-white font-bold rounded-lg transition duration-200 shadow-lg shadow-blue-400/50 transform hover:scale-[1.01]">
+                    UPI PAYMENT
+                </button>
+            </div>
+
+            <!-- Dashboard Link (Replaced Previous Button) -->
+            <a href="donerdashboard.html"
+                class="block w-full text-center mt-10 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition duration-150">
+                BACK TO DASHBOARD
+            </a>
+        </div>
+
+        <!-- 2. Payment Success Screen (Hidden by default) -->
+        <div id="successScreen"
+            class="hidden w-full max-w-md bg-white p-10 rounded-2xl card-shadow-modern text-center transition-all duration-300 animate-fade-in">
+            <!-- Success Title - Bright Green for impact -->
+            <h1 class="text-4xl font-extrabold text-green-600 mb-2 tracking-wide">PAYMENT SUCCESSFUL.</h1>
+            <p class="text-xl font-semibold text-gray-700 mb-10">THANK YOU.</p>
+
+            <!-- Mother Teresa Quote -->
+            <div class="mb-12 p-6 border-l-4 border-green-400 bg-green-50 rounded-lg">
+                <p class="text-gray-700 italic leading-relaxed text-lg">
+                    "Not all of us can do great things. But we can do small things with great love"
+                </p>
+                <p class="text-sm font-medium mt-3 text-gray-500">— Mother Teresa</p>
+            </div>
+
+            <!-- Back Button -->
+            <button onclick="handleBack()"
+                class="w-3/4 py-4 bg-[--color-accent-blue] hover:bg-[#154fc0] text-white font-bold rounded-lg transition duration-200 shadow-xl shadow-blue-400/50">
+                BACK
+            </button>
+        </div>
+
+    </div>
+
+    <!-- 3. Card Status Modal/Overlay (Hidden by default) -->
+    <div id="statusModal"
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-xs w-full text-center animate-fade-in">
+            <!-- Status message will be updated in JS with the amount -->
+            <p id="statusMessage" class="text-gray-900 font-semibold mb-6 text-lg">Card payment initiated.</p>
+            <button onclick="handleOk()"
+                class="w-full py-3 bg-[--color-accent-light] hover:bg-[#4338CA] text-white font-medium rounded-lg transition duration-150">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <!-- 4. Amount Input Modal (Hidden by default) -->
+    <div id="amountModal"
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-xs w-full text-center animate-fade-in">
+            <h2 class="text-xl font-bold text-gray-900 mb-5">Enter Payment Amount</h2>
+            <div class="relative mb-6">
+                <!-- Rupee symbol icon -->
+                <span
+                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-extrabold text-lg">₹</span>
+                <!-- Input is ready for user to type any amount -->
+                <input type="number" id="paymentAmount" min="0"
+                    class="w-full pl-8 pr-3 py-4 border-2 border-gray-300 rounded-lg focus:ring-[--color-accent-blue] focus:border-[--color-accent-blue] text-lg font-bold text-right transition duration-150"
+                    placeholder="0.00">
+                <!-- Hidden field to store the original payment type (card/upi) -->
+                <input type="hidden" id="originalPaymentType" value="">
+            </div>
+            <button onclick="handleAmountSubmit()"
+                class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition duration-150 shadow-md">
+                PROCEED
+            </button>
+        </div>
+    </div>
+
+    <!-- 5. UPI ID Input Modal (Hidden by default) - NEW STEP -->
+    <div id="upiIdModal"
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-xs w-full text-center animate-fade-in">
+            <h2 class="text-xl font-bold text-gray-900 mb-5">Enter UPI Transaction ID</h2>
+            <div class="relative mb-6">
+                <!-- Placeholder changed to be blank, as requested -->
+                <input type="text" id="upiTransactionId"
+                    class="w-full pl-3 pr-3 py-4 border-2 border-gray-300 rounded-lg focus:ring-[--color-accent-blue] focus:border-[--color-accent-blue] text-lg font-semibold text-center transition duration-150"
+                    placeholder="Transaction ID">
+            </div>
+            <button onclick="handleUpiIdSubmit()"
+                class="w-full py-3 bg-[--color-accent-blue] hover:bg-[#154fc0] text-white font-bold rounded-lg transition duration-150 shadow-md">
+                NEXT
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global utility function to manage screen visibility
+        function showScreen(screenId) {
+            // Hide all main containers
+            document.getElementById('paymentOptionsScreen').classList.add('hidden');
+            document.getElementById('successScreen').classList.add('hidden');
+            document.getElementById('statusModal').classList.add('hidden');
+            document.getElementById('amountModal').classList.add('hidden');
+            document.getElementById('upiIdModal').classList.add('hidden'); // Added UPI ID modal
+
+            // Show the requested container
+            document.getElementById(screenId).classList.remove('hidden');
+            // Re-apply fade-in class to ensure animation runs on screen change
+            document.getElementById(screenId).classList.add('animate-fade-in');
+        }
+
+        // Handles click on payment options (QR, Card, UPI)
+        function handlePaymentOption(type) {
+            // Store the payment type
+            document.getElementById('originalPaymentType').value = type;
+
+            // Reset input values and styles on every new attempt
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentAmount').classList.remove('border-red-500', 'ring-2', 'ring-red-500');
+            document.getElementById('upiTransactionId').value = '';
+            document.getElementById('upiTransactionId').classList.remove('border-red-500', 'ring-2', 'ring-red-500');
+
+
+            if (type === 'card' || type === 'qr') { // <-- UPDATED: QR now goes to amount modal
+                // Card and QR: Go directly to amount input
+                showScreen('amountModal');
+            } else if (type === 'upi') {
+                // UPI: Go to transaction ID input first
+                showScreen('upiIdModal');
+            }
+        }
+
+        // Handles UPI ID submission (New Step for UPI)
+        function handleUpiIdSubmit() {
+            const upiIdInput = document.getElementById('upiTransactionId');
+            const upiId = upiIdInput.value.trim();
+
+            // Simple validation: must not be empty
+            if (upiId === "") {
+                upiIdInput.classList.add('border-red-500', 'ring-2', 'ring-red-500');
+                console.error("Please enter a UPI Transaction ID.");
+                return;
+            }
+
+            // Remove error styling if present
+            upiIdInput.classList.remove('border-red-500', 'ring-2', 'ring-red-500');
+
+            // Proceed to amount modal
+            showScreen('amountModal');
+        }
+
+
+        // Handles amount submission from the amount modal
+        function handleAmountSubmit() {
+            const amountInput = document.getElementById('paymentAmount');
+            const amountValue = amountInput.value.trim(); // Get and trim the string value
+
+            // 1. Check for empty input FIRST
+            if (amountValue === "") {
+                // Highlight input field on error 
+                amountInput.classList.add('border-red-500', 'ring-2', 'ring-red-500');
+                console.error("Please enter a valid amount greater than 0.");
+                return;
+            }
+
+            const amount = parseFloat(amountValue);
+            const originalType = document.getElementById('originalPaymentType').value;
+
+            // 2. Check for NaN or amount <= 0
+            if (isNaN(amount) || amount <= 0) {
+                // Highlight input field on error 
+                amountInput.classList.add('border-red-500', 'ring-2', 'ring-red-500');
+                console.error("Please enter a valid amount greater than 0.");
+                return;
+            }
+
+            // Remove error styling if present
+            amountInput.classList.remove('border-red-500', 'ring-2', 'ring-red-500');
+
+            // Now proceed based on the original payment type
+            if (originalType === 'card') {
+                // Card flow: Show the status modal, updating message with amount
+                document.getElementById('statusMessage').textContent = `Card payment of ₹${amount.toFixed(2)} initiated.`;
+                showScreen('statusModal');
+            } else if (originalType === 'upi' || originalType === 'qr') { // <-- UPDATED: QR now leads to success after amount
+                // UPI and QR flow: Save donation and go to success screen after amount entry
+                saveDonation();
+                showScreen('successScreen');
+            }
+        }
+
+        // Handles 'OK' button click in the status modal (Card flow completion)
+        function handleOk() {
+            // Save donation to backend
+            saveDonation();
+            // Hide modal and transition to the success screen
+            showScreen('successScreen');
+        }
+
+        // Save donation to backend
+        function saveDonation() {
+            const amountInput = document.getElementById('paymentAmount');
+            const amount = parseFloat(amountInput.value.trim());
+            
+            // Get donor info from localStorage (if logged in)
+            const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || {};
+            const donorName = loggedInUser.name || 'Anonymous';
+            
+            const formData = new FormData();
+            formData.append('donor_name', donorName);
+            formData.append('amount', amount);
+            formData.append('product_name', 'General Donation');
+            formData.append('campaign_name', 'CareBox General');
+            
+            fetch('./backend/api/save_donation.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Donation saved:', data);
+            })
+            .catch(error => {
+                console.error('Error saving donation:', error);
+            });
+        }
+
+        // Handles 'BACK' button click on the success screen (No change here, handles internal flow)
+        function handleBack() {
+            // Return to the payment options screen
+            showScreen('paymentOptionsScreen');
+        }
+
+        // Initialize the app to show the first screen
+        document.addEventListener('DOMContentLoaded', () => {
+            showScreen('paymentOptionsScreen');
+        });
+    </script>
+</body>
+
+</html>
