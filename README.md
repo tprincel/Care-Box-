@@ -1,5 +1,7 @@
 # Care-Box
 
+**Live Deployment:** [https://care-box-036c8.containers.snapdeploy.app](https://care-box-036c8.containers.snapdeploy.app)
+
 ## Project Overview
 Care-Box is a web-based community donation platform connecting donors with individuals and organizations in need. It features interactive donation stories, secure authentication, and a dedicated donor dashboard to facilitate and track charitable contributions.
 
