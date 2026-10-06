@@ -1,116 +1,30 @@
-# CareBox - Charity Donation Platform
+# Care-Box
 
-A PHP-based charity donation website with donor and admin dashboards.
+## Project Overview
+Care-Box is a web-based community donation platform connecting donors with individuals and organizations in need. It features interactive donation stories, secure authentication, and a dedicated donor dashboard to facilitate and track charitable contributions.
 
-## Features
+## Key Features
+* User Authentication: Secure sign-up and login functionality for donors and recipients.
+* Donor Dashboard: A dedicated space for donors to manage their profiles, track past donations, and view impact.
+* Interactive Donation Stories: Engaging narratives highlighting the needs of individuals and organizations.
+* Recipient Management: Tools for organizations and individuals to post their needs and receive contributions.
+* Secure Platform: Ensures data privacy and safe connections between donors and recipients.
 
-- **User Roles**: Donor and Admin login systems
-- **Campaigns**: Support a Child, Feed the Needy, Save Aravalli, Make a Difference
-- **Donation Tracking**: Recent donations display and donor history
-- **Admin Dashboard**: Manage campaigns and view donations
-- **Responsive Design**: Works on all devices
+## Tech Stack
+* Frontend: HTML5, CSS3, JavaScript
+* Backend: PHP
+* Database: MySQL
 
-## Local Development (XAMPP)
+## Database Setup Instructions
+1. Open your local server environment (such as XAMPP, WAMP, or MAMP) and ensure both Apache and MySQL services are running.
+2. Navigate to phpMyAdmin in your web browser (typically at http://localhost/phpmyadmin).
+3. Create a new database named for the project (e.g., care_box).
+4. Import the provided SQL file (if available in the repository) into the newly created database to set up the required tables and initial data.
+5. Update the database connection credentials in the PHP configuration file (usually found in a config.php or database.php file) to match your local MySQL username, password, and database name.
 
-1. Install XAMPP
-2. Copy project to `C:\xampp\htdocs\carebox\`
-3. Import `database/carebox_db.sql` to phpMyAdmin
-4. Access at `http://localhost/carebox/`
-
-## InfinityFree Deployment
-
-### Step 1: Database Setup
-
-1. Sign up at [InfinityFree](https://infinityfree.net)
-2. Create a new hosting account
-3. Go to "MySQL Databases" in control panel
-4. Create a new database
-5. Note down:
-   - Database Name
-   - Database Username
-   - Database Password
-   - Database Host (usually `sqlXXX.epizy.com`)
-
-### Step 2: Update Database Config
-
-Edit `backend/config/database.php`:
-
-```php
-define('DB_HOST', 'sqlXXX.epizy.com');     // Your InfinityFree DB host
-define('DB_USERNAME', 'epiz_XXX');         // Your InfinityFree DB username
-define('DB_PASSWORD', 'your_password');    // Your InfinityFree DB password
-define('DB_NAME', 'epiz_XXX_carebox');     // Your InfinityFree DB name
-```
-
-### Step 3: Import Database
-
-1. Go to InfinityFree phpMyAdmin
-2. Select your database
-3. Import `database/carebox_db.sql`
-
-### Step 4: Upload Files
-
-1. Go to "Online File Manager" in InfinityFree control panel
-2. Navigate to `htdocs/`
-3. Upload all project files (or use FTP)
-4. Make sure `index.html` is in the root
-
-### Step 5: Access Website
-
-Your website will be at: `http://yourdomain.epizy.com`
-
-## Default Login Credentials
-
-### Admin
-- Member ID: `ADMIN001`
-- Email: `admin@carebox.com`
-- Password: `admin123`
-
-### Test Donor
-- Email: `donor@test.com`
-- Password: `donor123`
-
-## File Structure
-
-```
-carebox2.0/
-├── index.html              # Main landing page (login)
-├── admindashboard.html     # Admin dashboard
-├── donerdashboard.html     # Donor dashboard
-├── donatebutton.html       # Donation page
-├── donatenowbutton.html    # Quick donation
-├── supportachild.html      # Campaign page
-├── feedtheneedy.html       # Campaign page
-├── saveavali.html          # Campaign page
-├── makeadifference.html    # Campaign page
-├── backend/
-│   ├── api/               # API endpoints
-│   ├── config/            # Database config
-│   └── includes/          # PHP functions
-├── database/
-│   └── carebox_db.sql     # Database schema
-└── .htaccess              # Server configuration
-```
-
-## Adding New Admins (Verified NGOs)
-
-Only system owner can add admins. Use this SQL in phpMyAdmin:
-
-```sql
-INSERT INTO admins (name, email, password, phone, member_id) VALUES 
-('NGO Name', 'ngo@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '9876543210', 'UNIQUEID');
-```
-
-Default password will be `admin123`.
-
-## Technologies Used
-
-- HTML5, CSS3, JavaScript
-- Tailwind CSS (CDN)
-- PHP 8.x
-- MySQL/MariaDB
-- XAMPP (local development)
-
-## License
-
-This project is for educational purposes.
+## How to Run the Application Locally
+1. Clone this repository to your local machine.
+2. Move the project folder into your local server's document root (e.g., the htdocs folder for XAMPP or the www folder for WAMP).
+3. Complete the Database Setup Instructions outlined above.
+4. Open your web browser and navigate to the project directory via localhost (e.g., http://localhost/Care-Box).
+5. You can now interact with the Care-Box platform locally.
